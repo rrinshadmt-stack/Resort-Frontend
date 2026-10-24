@@ -18,6 +18,7 @@ import {
 import { SearchBar } from "@/components/resorts/SearchBar";
 import { ResortCard } from "@/components/resorts/ResortCard";
 import { Resort } from "@/types/resort";
+import { fetchResorts } from "@/lib/resort-service";
 
 const DESTINATION_CARDS = [
   {
@@ -80,6 +81,16 @@ export default function HomePage() {
   const [featuredResorts, setFeaturedResorts] = useState<Resort[]>([]);
 
   useEffect(() => {
+    async function loadFeatured() {
+      try {
+        const res = await fetchResorts();
+        const list = res.resorts.filter((r) => r.isFeatured);
+        setFeaturedResorts(list.length > 0 ? list.slice(0, 6) : res.resorts.slice(0, 6));
+      } catch (err) {
+        console.error("Failed to load featured resorts:", err);
+      }
+    }
+    loadFeatured();
   }, []);
 
   return (

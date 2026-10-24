@@ -104,3 +104,115 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* -------------------------------------------------------------------------- */
+/* DYNAMIC THEME SYSTEM TOKENS & TYPOGRAPHY CLASSES                          */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --theme-heading-size: 24px;
+  --theme-address-size: 13px;
+  --theme-price-size: 28px;
+  --theme-description-size: 14px;
+  --theme-badge-size: 12px;
+  --theme-button-size: 14px;
+  --theme-radius: 1rem;
+  --theme-font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --theme-primary: #0a2560;
+  --theme-accent: #0ea5e9;
+  --theme-highlight: #f97316;
+}
+
+/* Typography Utility Classes that react dynamically to Theme Settings */
+.theme-heading {
+  font-size: var(--theme-heading-size, 24px) !important;
+  line-height: 1.25 !important;
+  font-weight: 800;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-address {
+  font-size: var(--theme-address-size, 13px) !important;
+  line-height: 1.4 !important;
+  font-weight: 500;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-price {
+  font-size: var(--theme-price-size, 28px) !important;
+  line-height: 1 !important;
+  font-weight: 900;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-description {
+  font-size: var(--theme-description-size, 14px) !important;
+  line-height: 1.6 !important;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-badge {
+  font-size: var(--theme-badge-size, 12px) !important;
+  line-height: 1.2 !important;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-button {
+  font-size: var(--theme-button-size, 14px) !important;
+  line-height: 1.2 !important;
+  transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-card-rounded {
+  border-radius: var(--theme-radius, 1rem) !important;
+  transition: border-radius 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Theme Archetype Color Modes */
+[data-theme="sunset"] {
+  --primary-ocean-900: #7c2d12;
+  --primary-ocean-800: #9a3412;
+  --brand-blue: #ea580c;
+  --brand-blue-hover: #c2410c;
+  --theme-primary: #7c2d12;
+  --theme-accent: #f97316;
+}
+
+[data-theme="emerald"] {
+  --primary-ocean-900: #064e3b;
+  --primary-ocean-800: #047857;
+  --brand-blue: #059669;
+  --brand-blue-hover: #047857;
+  --theme-primary: #064e3b;
+  --theme-accent: #10b981;
+}
+
+[data-theme="dark"] {
+  background-color: #0b0f19;
+  color: #f1f5f9;
+  --primary-ocean-900: #1e293b;
+  --primary-ocean-800: #334155;
+  --surface-light: #0f172a;
+  --surface-card: #1e293b;
+  --border-subtle: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --theme-primary: #38bdf8;
+  --theme-accent: #38bdf8;
+}
+
+[data-theme="slate"] {
+  --primary-ocean-900: #1e293b;
+  --primary-ocean-800: #334155;
+  --brand-blue: #475569;
+  --brand-blue-hover: #334155;
+  --theme-primary: #1e293b;
+  --theme-accent: #64748b;
+}
+
+/* High Contrast Mode */
+[data-high-contrast="true"] {
+  font-weight: 550;
+  --border-subtle: #94a3b8;
+}
+

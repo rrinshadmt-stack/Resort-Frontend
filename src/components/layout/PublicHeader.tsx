@@ -14,6 +14,7 @@ import {
   Sparkles,
   Home,
   LogIn,
+  Palette,
 } from "lucide-react";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { useAuth } from "@/context/AuthContext";
@@ -136,6 +137,7 @@ function PublicHeaderContent() {
                 <CalendarDays className="w-4 h-4 text-[#f97316]" />
                 <span>My Bookings</span>
               </Link>
+
 
               {/* Profile / Auth Button */}
               {currentUser ? (
