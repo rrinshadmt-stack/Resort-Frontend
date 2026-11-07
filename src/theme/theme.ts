@@ -1,16 +1,12 @@
 /**
- * ============================================================================
  * STAYUP DESIGN SYSTEM: COLOR THEME & TYPOGRAPHY CONFIGURATION
- * ============================================================================
  * 
  * Edit this central file to customize colors and text sizes across the entire frontend.
  * Changing any size or color here immediately updates all Theme components (<ThemeHeading>,
  * <ThemeAddress>, <ThemePrice>, <ThemeDescription>) and utility classes.
  */
 
-// ----------------------------------------------------------------------------
 // 1. COLOR PALETTE DEFINITION
-// ----------------------------------------------------------------------------
 export const THEME_COLORS = {
   // Primary brand palette (Deep Ocean Navy)
   primary: {
@@ -64,9 +60,7 @@ export const THEME_COLORS = {
   },
 } as const;
 
-// ----------------------------------------------------------------------------
 // 2. TEXT SIZES CONFIGURATION FOR DIFFERENT TYPES OF TEXT
-// ----------------------------------------------------------------------------
 export const THEME_TEXT_SIZES = {
   /**
    * HEADING TEXT SIZES (Titles, H1, H2, H3, Resort names, Section headers)
@@ -129,9 +123,7 @@ export const THEME_TEXT_SIZES = {
   },
 } as const;
 
-// ----------------------------------------------------------------------------
 // 3. THEME PALETTES / MODES
-// ----------------------------------------------------------------------------
 export type ColorThemeMode = "ocean" | "sunset" | "emerald" | "dark";
 
 export interface ColorThemeDefinition {
