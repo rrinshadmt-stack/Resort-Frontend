@@ -5,9 +5,11 @@ import { useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/resorts/SearchBar";
 import { ResortCard } from "@/components/resorts/ResortCard";
 import { FilterSidebar } from "@/components/resorts/FilterSidebar";
-import { MOCK_RESORTS } from "@/data/resorts";
 import { SearchFilterParams, Resort } from "@/types/resort";
-import { Compass, Filter, RefreshCw } from "lucide-react";
+import { fetchResorts } from "@/lib/resort-service";
+import { Compass, Filter, RefreshCw, Server, Wifi, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ThemeHeading, ThemeDescription } from "@/components/theme";
 
 function ResortsSearchContent() {
   const searchParams = useSearchParams();
@@ -29,6 +31,10 @@ function ResortsSearchContent() {
     sortBy: "recommended",
   });
 
+  const [resorts, setResorts] = useState<Resort[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [apiSource, setApiSource] = useState<string>("connecting");
+  const [isLiveApi, setIsLiveApi] = useState<boolean>(false);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Sync searchParams with local state if URL changes
@@ -42,54 +48,23 @@ function ResortsSearchContent() {
     }));
   }, [searchParams]);
 
-  // Client-side filtering & sorting of mock data
-  const filteredResorts = useMemo(() => {
-    let list = [...MOCK_RESORTS].filter((r) => r.status === "active");
-
-    if (filters.destination && filters.destination.trim() !== "" && filters.destination.toLowerCase() !== "all") {
-      const q = filters.destination.toLowerCase().trim();
-      list = list.filter(
-        (r) =>
-          r.destination.toLowerCase().includes(q) ||
-          r.city.toLowerCase().includes(q) ||
-          r.country.toLowerCase().includes(q) ||
-          r.name.toLowerCase().includes(q)
-      );
+  // Load resorts via API integration service
+  const loadResorts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetchResorts(filters);
+      setResorts(res.resorts);
+      setApiSource(res.source);
+      setIsLiveApi(res.isLive);
+    } catch (err) {
+      console.error("Resort API fetch error:", err);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    if (filters.category && filters.category !== "all") {
-      list = list.filter((r) => r.category === filters.category);
-    }
-
-    if (filters.minPrice !== undefined) {
-      list = list.filter((r) => r.pricePerNight >= filters.minPrice!);
-    }
-
-    if (filters.maxPrice !== undefined) {
-      list = list.filter((r) => r.pricePerNight <= filters.maxPrice!);
-    }
-
-    if (filters.minRating !== undefined) {
-      list = list.filter((r) => r.rating >= filters.minRating!);
-    }
-
-    if (filters.amenities && filters.amenities.length > 0) {
-      list = list.filter((r) =>
-        filters.amenities!.every((reqAmenity) =>
-          r.amenities.some((a) => a.toLowerCase().includes(reqAmenity.toLowerCase()))
-        )
-      );
-    }
-
-    if (filters.sortBy === "price-low") {
-      list.sort((a, b) => a.pricePerNight - b.pricePerNight);
-    } else if (filters.sortBy === "price-high") {
-      list.sort((a, b) => b.pricePerNight - a.pricePerNight);
-    } else if (filters.sortBy === "rating") {
-      list.sort((a, b) => b.rating - a.rating);
-    }
-
-    return list;
+  useEffect(() => {
+    loadResorts();
   }, [filters]);
 
   const handleResetFilters = () => {
@@ -109,6 +84,10 @@ function ResortsSearchContent() {
       {/* Search Bar Banner */}
       <div className="bg-gradient-to-r from-[#0a2560] to-[#1444a8] p-6 sm:p-8 rounded-3xl text-white shadow-xl">
         <div className="mb-6 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-xs font-semibold text-sky-200 mb-3 border border-white/20">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Theme-Aware Typography & Live Resort API</span>
+          </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-black">
             Find Your Next Resort Getaway
           </h1>
@@ -128,10 +107,10 @@ function ResortsSearchContent() {
         </div>
       </div>
 
-      {/* Results Header and Mobile Filter Toggle */}
+      {/* Results Header and API Integration Badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <ThemeHeading as="h2" size="lg">
             {filters.destination ? (
               <>
                 Resorts in <span className="text-[#0a2560]">{filters.destination}</span>
@@ -139,15 +118,36 @@ function ResortsSearchContent() {
             ) : (
               "All Available Resorts"
             )}
-          </h2>
-          <p className="text-sm text-slate-600 mt-1 font-medium">
-            Showing <strong className="text-slate-900 font-bold">{filteredResorts.length}</strong> {filteredResorts.length === 1 ? "stay" : "stays"} • Dates:{" "}
+          </ThemeHeading>
+          <ThemeDescription size="md" className="mt-1">
+            Showing <strong className="text-slate-900 font-bold">{resorts.length}</strong> {resorts.length === 1 ? "stay" : "stays"} • Dates:{" "}
             <span className="font-bold text-slate-800">{filters.checkIn} → {filters.checkOut}</span> •{" "}
             <span className="font-bold text-slate-800">{filters.guests} Guests, {filters.rooms} Room</span>
-          </p>
+          </ThemeDescription>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* API Integration Status & Theme Quick Link */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
+            <Server className={`w-3.5 h-3.5 ${isLiveApi ? "text-emerald-600" : "text-sky-600"}`} />
+            <span>
+              API:{" "}
+              <strong className={isLiveApi ? "text-emerald-700 font-bold" : "text-slate-800 font-bold"}>
+                {isLiveApi ? "Express Live" : "Internal / Cached"}
+              </strong>
+            </span>
+            <button
+              type="button"
+              onClick={loadResorts}
+              title="Refresh from API"
+              disabled={isLoading}
+              className="p-1 hover:bg-slate-200 rounded text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              <RefreshCw className={`w-3 h-3 ${isLoading ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+
+
           <button
             onClick={() => setShowMobileFilters(!showMobileFilters)}
             className="lg:hidden inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 shadow-xs"
@@ -182,9 +182,26 @@ function ResortsSearchContent() {
 
         {/* Resort Cards Results (Stretchy lg:col-span-9 with 3-column layout) */}
         <div className="lg:col-span-9">
-          {filteredResorts.length > 0 ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredResorts.map((resort) => (
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white rounded-2xl p-4 border border-slate-200 animate-pulse space-y-4"
+                >
+                  <div className="aspect-16/10 bg-slate-200 rounded-xl w-full" />
+                  <div className="h-6 bg-slate-200 rounded w-3/4" />
+                  <div className="h-4 bg-slate-200 rounded w-1/2" />
+                  <div className="flex justify-between pt-4 border-t border-slate-100">
+                    <div className="h-8 bg-slate-200 rounded w-24" />
+                    <div className="h-8 bg-slate-200 rounded w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : resorts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {resorts.map((resort) => (
                 <ResortCard
                   key={resort.id}
                   resort={resort}

@@ -45,13 +45,13 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<"CUSTOMER" | "OWNER">("CUSTOMER");
+  const [role, setRole] = useState<"user" | "property_owner">("user");
   const [otp, setOtp] = useState("");
 
   // UI States
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -705,9 +705,9 @@ function LoginForm() {
                 <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
-                    onClick={() => setRole("CUSTOMER")}
+                    onClick={() => setRole("user")}
                     className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
-                      role === "CUSTOMER"
+                      role === "user"
                         ? "border-[#0ea5e9] bg-sky-50/70 shadow-xs"
                         : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
@@ -721,16 +721,16 @@ function LoginForm() {
 
                   <button
                     type="button"
-                    onClick={() => setRole("OWNER")}
+                    onClick={() => setRole("property_owner")}
                     className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
-                      role === "OWNER"
+                      role === "property_owner"
                         ? "border-[#f97316] bg-orange-50/70 shadow-xs"
                         : "border-slate-200 bg-white hover:border-slate-300"
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-black text-xs text-slate-900">
                       <Building2 className="w-4 h-4 text-[#f97316]" />
-                      <span>Resort Owner</span>
+                      <span>Property Owner</span>
                     </div>
                     <span className="text-[10px] text-slate-500">List and manage properties</span>
                   </button>

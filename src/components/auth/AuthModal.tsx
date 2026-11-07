@@ -48,7 +48,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<"CUSTOMER" | "OWNER">("CUSTOMER");
+  const [role, setRole] = useState<"user" | "property_owner">("user");
   const [otp, setOtp] = useState("");
 
   // UI States
@@ -582,9 +582,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setRole("CUSTOMER")}
+                      onClick={() => setRole("user")}
                       className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        role === "CUSTOMER"
+                        role === "user"
                           ? "border-[#0ea5e9] bg-sky-50 text-[#0a2560] font-black"
                           : "border-slate-200 text-slate-600 hover:border-slate-300"
                       }`}
@@ -594,14 +594,14 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }: AuthModalPr
                     </button>
                     <button
                       type="button"
-                      onClick={() => setRole("OWNER")}
+                      onClick={() => setRole("property_owner")}
                       className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                        role === "OWNER"
+                        role === "property_owner"
                           ? "border-[#f97316] bg-orange-50 text-slate-900 font-black"
                           : "border-slate-200 text-slate-600 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-xs block font-bold">Resort Owner</span>
+                      <span className="text-xs block font-bold">Property Owner</span>
                       <span className="text-[10px] text-slate-400 block">List properties</span>
                     </button>
                   </div>

@@ -1,18 +1,38 @@
+import axios from "axios";
 import { User, UserRole } from "@/types/user";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // -----------------------------------------------------------------------------
-// Backend Auth Types (Exact Match to backend auth.validation.ts & auth.controller.ts)
+// Axios Client Instance with Interceptors
 // -----------------------------------------------------------------------------
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Automatically inject stored Bearer token into outgoing requests
+api.interceptors.request.use((config) => {
+  const token = getStoredToken();
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Backend Auth Types (Exact Match to backend auth.validation.ts & auth.controller.ts)
 
 export interface RegisterInput {
   name: string;
   email: string;
   password: string;
   phone?: string | null;
-  role?: "CUSTOMER" | "OWNER";
+  role?: "user" | "property_owner";
 }
 
 export interface LoginInput {
@@ -34,7 +54,7 @@ export interface BackendUser {
   name: string;
   email: string;
   phone: string | null;
-  role: "CUSTOMER" | "OWNER" | "ADMIN" | string;
+  role: "user" | "property_owner" | "admin" | string;
   isVerified?: boolean;
   createdAt?: string;
 }
@@ -102,17 +122,15 @@ export function validateEmail(email: string): string | null {
   return null;
 }
 
-export function validatePassword(password: string, isSignUp = false): string | null {
+export function validatePassword(password: string, isRegister = false): string | null {
   if (!password) {
     return "Password is required";
   }
-  if (isSignUp) {
-    if (password.length < 6) {
-      return "Password must be at least 6 characters long";
-    }
-    if (password.length > 100) {
-      return "Password cannot exceed 100 characters";
-    }
+  if (isRegister && password.length < 6) {
+    return "Password must be at least 6 characters long";
+  }
+  if (password.length > 100) {
+    return "Password cannot exceed 100 characters";
   }
   return null;
 }
@@ -123,21 +141,19 @@ export function validateName(name: string): string | null {
     return "Full name is required";
   }
   if (trimmed.length < 2) {
-    return "Full name must be at least 2 characters long";
+    return "Name must be at least 2 characters long";
   }
   if (trimmed.length > 50) {
-    return "Full name cannot exceed 50 characters";
+    return "Name must not exceed 50 characters";
   }
   return null;
 }
 
 export function validatePhone(phone?: string | null): string | null {
-  if (!phone) return null; // Optional in backend schema
-  const trimmed = phone.trim();
-  if (!trimmed) return null;
+  if (!phone || !phone.trim()) return null; // optional
   const phoneRegex = /^[0-9+\s\-()]{7,20}$/;
-  if (!phoneRegex.test(trimmed)) {
-    return "Invalid phone format (must be 7-20 digits with +, -, () allowed)";
+  if (!phoneRegex.test(phone.trim())) {
+    return "Please enter a valid phone number format";
   }
   return null;
 }
@@ -145,55 +161,52 @@ export function validatePhone(phone?: string | null): string | null {
 export function validateOtp(otp: string): string | null {
   const trimmed = otp.trim();
   if (!trimmed) {
-    return "6-digit OTP code is required";
+    return "Verification code is required";
   }
   if (!/^\d{6}$/.test(trimmed)) {
-    return "OTP must be exactly 6 digits";
+    return "Verification code must be exactly 6 digits";
   }
   return null;
 }
 
 export interface PasswordStrength {
-  score: number; // 0 to 4
-  label: "Too Short" | "Weak" | "Fair" | "Good" | "Strong";
+  score: number;
+  label: string;
   colorClass: string;
   widthPercent: number;
 }
 
 export function getPasswordStrength(password: string): PasswordStrength {
-  if (!password || password.length < 6) {
-    return {
-      score: 0,
-      label: "Too Short",
-      colorClass: "bg-rose-500",
-      widthPercent: password.length > 0 ? 20 : 0,
-    };
+  if (!password) {
+    return { score: 0, label: "Too short", colorClass: "bg-slate-200", widthPercent: 5 };
   }
 
-  let score = 1;
-  if (password.length >= 8) score++;
-  if (/[0-9]/.test(password)) score++;
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 10) score++;
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-  if (/[^a-zA-Z0-9]/.test(password)) score++;
+  if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score++;
 
   switch (score) {
     case 1:
-      return { score: 1, label: "Weak", colorClass: "bg-amber-500", widthPercent: 35 };
+      return { score: 1, label: "Weak", colorClass: "bg-rose-500", widthPercent: 25 };
     case 2:
-      return { score: 2, label: "Fair", colorClass: "bg-yellow-500", widthPercent: 60 };
+      return { score: 2, label: "Fair", colorClass: "bg-amber-500", widthPercent: 50 };
     case 3:
-      return { score: 3, label: "Good", colorClass: "bg-sky-500", widthPercent: 80 };
-    default:
+      return { score: 3, label: "Good", colorClass: "bg-sky-500", widthPercent: 75 };
+    case 4:
       return { score: 4, label: "Strong", colorClass: "bg-emerald-500", widthPercent: 100 };
+    default:
+      return { score: 0, label: "Too weak", colorClass: "bg-slate-200", widthPercent: 10 };
   }
 }
 
 // -----------------------------------------------------------------------------
-// Session & Local Storage Management
+// Local Storage Session Management
 // -----------------------------------------------------------------------------
 
-export const STORAGE_KEY_USER = "stayup_auth_user";
-export const STORAGE_KEY_TOKEN = "stayup_access_token";
+const STORAGE_KEY_USER = "stayup_auth_user";
+const STORAGE_KEY_TOKEN = "stayup_auth_token";
 
 export function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
@@ -235,7 +248,7 @@ export function clearSession(): void {
 function normalizeRole(backendRole?: string): UserRole {
   if (!backendRole) return "customer";
   const lower = backendRole.toLowerCase();
-  if (lower === "owner") return "owner";
+  if (lower === "property_owner" || lower === "owner") return "owner";
   if (lower === "admin") return "admin";
   return "customer";
 }
@@ -260,7 +273,6 @@ export function mapBackendUserToFrontend(raw: BackendUser | any): User {
 
 /**
  * Helper to make authenticated requests with JWT Bearer header and cookies.
- * Ready for future backend endpoint connections!
  */
 export async function authFetch(
   endpoint: string,
@@ -287,54 +299,44 @@ export async function authFetch(
 }
 
 // -----------------------------------------------------------------------------
-// Backend Functions (POST /api/auth/register, /login, /verify-otp, /resend-otp)
+// Axios Backend Auth Functions (/api/v1/auth/register, /login, /verify-otp, /resend-otp)
 // -----------------------------------------------------------------------------
 
 /**
  * 1. Register a new user & trigger 6-digit OTP verification email
- * Backend Endpoint: POST /api/auth/register
+ * Backend Endpoint: POST /api/v1/auth/register
  */
 export async function apiRegister(
   payload: RegisterInput
 ): Promise<{ success: boolean; message: string; email: string; requiresOtp: boolean }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        name: payload.name.trim(),
-        email: payload.email.toLowerCase().trim(),
-        password: payload.password,
-        phone: payload.phone ? payload.phone.trim() : undefined,
-        role: payload.role || "CUSTOMER",
-      }),
+    const res = await api.post<RegisterResponse>("/api/v1/auth/register", {
+      name: payload.name.trim(),
+      email: payload.email.toLowerCase().trim(),
+      password: payload.password,
+      phone: payload.phone ? payload.phone.trim() : undefined,
+      role: payload.role || "user",
     });
-
-    const json = await res.json().catch(() => ({
-      success: false,
-      message: `Server returned HTTP ${res.status}`,
-    }));
-
-    if (!res.ok || !json.success) {
-      const errMsg =
-        json.errors?.map((e: any) => e.message).join(", ") ||
-        json.message ||
-        "Registration failed. Please check your details.";
-      throw new Error(errMsg);
-    }
 
     return {
       success: true,
-      message: json.message || "Verification code sent to your email.",
+      message: res.data.message || "Verification code sent to your email.",
       email: payload.email.toLowerCase().trim(),
       requiresOtp: true,
     };
   } catch (err: any) {
-    if (err.name === "TypeError" && err.message.includes("fetch")) {
-      throw new Error(
-        `Backend server at ${API_BASE_URL} is currently offline. You can use Instant Demo User Login to test.`
-      );
+    if (axios.isAxiosError(err)) {
+      if (!err.response) {
+        throw new Error(
+          `Backend server at ${API_BASE_URL} is currently unreachable. Please ensure the server is running.`
+        );
+      }
+      const data: any = err.response.data;
+      const errMsg =
+        data?.errors?.map((e: any) => e.message).join(", ") ||
+        data?.message ||
+        "Registration failed. Please check your details.";
+      throw new Error(errMsg);
     }
     throw err;
   }
@@ -342,41 +344,31 @@ export async function apiRegister(
 
 /**
  * 2. Verify 6-digit OTP code, activate account, and obtain auth tokens
- * Backend Endpoint: POST /api/auth/verify-otp
+ * Backend Endpoint: POST /api/v1/auth/verify-otp
  */
 export async function apiVerifyOtp(
   payload: VerifyOtpInput
 ): Promise<{ user: User; accessToken: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email: payload.email.toLowerCase().trim(),
-        otp: payload.otp.trim(),
-      }),
+    const res = await api.post<VerifyOtpResponse>("/api/v1/auth/verify-otp", {
+      email: payload.email.toLowerCase().trim(),
+      otp: payload.otp.trim(),
     });
 
-    const json = await res.json().catch(() => ({
-      success: false,
-      message: `Server returned HTTP ${res.status}`,
-    }));
-
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || "Invalid OTP code. Please check and try again.");
-    }
-
-    const user = mapBackendUserToFrontend(json.data.user);
-    saveSession(user, json.data.accessToken);
+    const user = mapBackendUserToFrontend(res.data.data.user);
+    saveSession(user, res.data.data.accessToken);
 
     return {
       user,
-      accessToken: json.data.accessToken,
+      accessToken: res.data.data.accessToken,
     };
   } catch (err: any) {
-    if (err.name === "TypeError" && err.message.includes("fetch")) {
-      throw new Error(`Backend server at ${API_BASE_URL} is currently offline.`);
+    if (axios.isAxiosError(err)) {
+      if (!err.response) {
+        throw new Error(`Backend server at ${API_BASE_URL} is currently unreachable.`);
+      }
+      const data: any = err.response.data;
+      throw new Error(data?.message || "Invalid OTP code. Please check and try again.");
     }
     throw err;
   }
@@ -384,32 +376,22 @@ export async function apiVerifyOtp(
 
 /**
  * 3. Resend fresh 6-digit OTP code to an unverified email
- * Backend Endpoint: POST /api/auth/resend-otp
+ * Backend Endpoint: POST /api/v1/auth/resend-otp
  */
 export async function apiResendOtp(email: string): Promise<string> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email: email.toLowerCase().trim(),
-      }),
+    const res = await api.post<ResendOtpResponse>("/api/v1/auth/resend-otp", {
+      email: email.toLowerCase().trim(),
     });
 
-    const json = await res.json().catch(() => ({
-      success: false,
-      message: `Server returned HTTP ${res.status}`,
-    }));
-
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || "Failed to resend OTP code.");
-    }
-
-    return json.message || "A new 6-digit verification code has been sent to your email.";
+    return res.data.message || "A new 6-digit verification code has been sent to your email.";
   } catch (err: any) {
-    if (err.name === "TypeError" && err.message.includes("fetch")) {
-      throw new Error(`Backend server at ${API_BASE_URL} is currently offline.`);
+    if (axios.isAxiosError(err)) {
+      if (!err.response) {
+        throw new Error(`Backend server at ${API_BASE_URL} is currently unreachable.`);
+      }
+      const data: any = err.response.data;
+      throw new Error(data?.message || "Failed to resend OTP code.");
     }
     throw err;
   }
@@ -417,55 +399,49 @@ export async function apiResendOtp(email: string): Promise<string> {
 
 /**
  * 4. Authenticate an existing user and create a session
- * Backend Endpoint: POST /api/auth/login
+ * Backend Endpoint: POST /api/v1/auth/login
  */
 export async function apiLogin(
   payload: LoginInput
 ): Promise<{ user: User; accessToken: string }> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email: payload.email.toLowerCase().trim(),
-        password: payload.password,
-      }),
+    const res = await api.post<LoginResponse>("/api/v1/auth/login", {
+      email: payload.email.toLowerCase().trim(),
+      password: payload.password,
     });
 
-    const json = await res.json().catch(() => ({
-      success: false,
-      message: `Server returned HTTP ${res.status}`,
-    }));
+    const user = mapBackendUserToFrontend(res.data.data.user);
+    saveSession(user, res.data.data.accessToken);
 
-    if (!res.ok || !json.success) {
-      // Check if user is unverified (403: "Please verify your email before logging in.")
+    return {
+      user,
+      accessToken: res.data.data.accessToken,
+    };
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      if (!err.response) {
+        throw new Error(
+          `Backend server at ${API_BASE_URL} is currently unreachable. You can use Instant Demo User Login to test.`
+        );
+      }
+
+      const status = err.response.status;
+      const data: any = err.response.data;
+
+      // Handle unverified account (403 Forbidden: "Please verify your email before logging in.")
       if (
-        res.status === 403 ||
-        json.message?.toLowerCase().includes("verify your email")
+        status === 403 ||
+        data?.message?.toLowerCase().includes("verify your email")
       ) {
         const error: any = new Error(
-          json.message || "Please verify your email before logging in."
+          data?.message || "Please verify your email before logging in."
         );
         error.requiresVerification = true;
         error.email = payload.email.toLowerCase().trim();
         throw error;
       }
-      throw new Error(json.message || "Invalid email or password.");
-    }
 
-    const user = mapBackendUserToFrontend(json.data.user);
-    saveSession(user, json.data.accessToken);
-
-    return {
-      user,
-      accessToken: json.data.accessToken,
-    };
-  } catch (err: any) {
-    if (err.name === "TypeError" && err.message.includes("fetch")) {
-      throw new Error(
-        `Backend server at ${API_BASE_URL} is currently offline. You can use Instant Demo User Login to test.`
-      );
+      throw new Error(data?.message || "Invalid email or password.");
     }
     throw err;
   }
