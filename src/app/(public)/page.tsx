@@ -77,18 +77,14 @@ const COUNTRY_FLAGS = [
 
 export default function HomePage() {
   const [selectedCountry, setSelectedCountry] = useState("All");
-  // Holds real properties added through the system. Initially empty since no properties are added yet.
   const [featuredResorts, setFeaturedResorts] = useState<Resort[]>([]);
 
   useEffect(() => {
-    // Ready to integrate with real backend/database when actual properties are added
   }, []);
 
   return (
     <div className="w-full space-y-20 pb-24">
-      {/* 1. HERO SECTION - Immersive Bay Landscape Full Bleed to Top */}
       <section className="relative w-full min-h-[680px] md:min-h-[760px] flex flex-col justify-between overflow-visible">
-        {/* Background Image: Tropical Landscape extending to top */}
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -96,11 +92,9 @@ export default function HomePage() {
               "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2400&q=85')",
           }}
         >
-          {/* Subtle dark gradient overlay to ensure high contrast and text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/40 to-black/75" />
         </div>
 
-        {/* Hero Content with generous top padding for transparent header */}
         <div className="relative z-30 w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 pt-36 md:pt-44 pb-20 md:pb-28 text-center text-white">
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight max-w-5xl mx-auto drop-shadow-md leading-tight">
             Find Your Perfect <span className="text-[#f97316]">Escape</span>
@@ -109,13 +103,11 @@ export default function HomePage() {
             Discover beautiful resorts, peaceful retreats, and unforgettable stays.
           </p>
 
-          {/* Floating Search Bar */}
           <div className="mt-10 md:mt-14 max-w-[1500px] w-full mx-auto relative z-40">
             <SearchBar />
           </div>
         </div>
 
-        {/* 2. TRUST PLATFORM STRIP - Authentic Value Commitments (No fake stats/ratings) */}
         <div className="relative z-10 w-full bg-white/95 backdrop-blur-md border-t border-slate-200 py-4.5 shadow-sm">
           <div className="w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
             <div className="flex flex-wrap items-center justify-around gap-6 text-slate-800 text-sm sm:text-base font-extrabold">
@@ -144,7 +136,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. CURATED RESORT EXPERIENCE */}
       <section className="w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-md">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
@@ -171,9 +162,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* 5 Amenity Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 md:gap-6">
-            {/* Free Wi-Fi */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 hover:border-[#0284c7] hover:shadow-xl transition-all flex flex-col items-center text-center group cursor-pointer">
               <div className="w-18 h-18 rounded-2xl bg-blue-50 text-[#0284c7] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-xs">
                 <Wifi className="w-9 h-9 text-[#0284c7]" />
@@ -182,7 +171,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-500 mt-1 font-medium">High-speed connectivity</p>
             </div>
 
-            {/* AC Rooms */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 hover:border-[#0284c7] hover:shadow-xl transition-all flex flex-col items-center text-center group cursor-pointer">
               <div className="w-18 h-18 rounded-2xl bg-blue-50 text-[#0284c7] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-xs">
                 <Wind className="w-9 h-9 text-[#0284c7]" />
@@ -191,7 +179,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-500 mt-1 font-medium">Climate controlled suites</p>
             </div>
 
-            {/* Clean Rooms */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 hover:border-[#0284c7] hover:shadow-xl transition-all flex flex-col items-center text-center group cursor-pointer">
               <div className="w-18 h-18 rounded-2xl bg-blue-50 text-[#0284c7] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-xs">
                 <Sparkles className="w-9 h-9 text-[#0284c7]" />
@@ -200,7 +187,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-500 mt-1 font-medium">Sanitized linen & stays</p>
             </div>
 
-            {/* Essential Toiletries */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 hover:border-[#0284c7] hover:shadow-xl transition-all flex flex-col items-center text-center group cursor-pointer">
               <div className="w-18 h-18 rounded-2xl bg-blue-50 text-[#0284c7] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-xs">
                 <Coffee className="w-9 h-9 text-[#0284c7]" />
@@ -209,7 +195,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-500 mt-1 font-medium">Fresh kit provided</p>
             </div>
 
-            {/* Helpful Staff */}
             <div className="col-span-2 sm:col-span-1 p-6 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 hover:border-[#f97316] hover:shadow-xl transition-all flex flex-col items-center text-center group cursor-pointer">
               <div className="w-18 h-18 rounded-2xl bg-orange-50 text-[#f97316] flex items-center justify-center mb-4 group-hover:scale-105 transition-transform shadow-xs">
                 <UserCheck className="w-9 h-9 text-[#f97316]" />
@@ -221,7 +206,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. TRAVEL THE WORLD. SPEND LESS. - Destinations Section */}
       <section className="w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
           <div>
@@ -234,7 +218,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Country Flag Selector */}
         <div className="flex items-center gap-3.5 overflow-x-auto pb-4 no-scrollbar">
           {COUNTRY_FLAGS.map((c) => {
             const isSelected = selectedCountry === c.name;
@@ -256,7 +239,6 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Destination Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-4">
           {DESTINATION_CARDS.map((dest) => (
             <Link
@@ -288,7 +270,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. FEATURED RESORTS SECTION - Clean Empty State (Zero Fake Listings/Prices) */}
       <section className="w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
@@ -325,7 +306,6 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 6. TRAVELER REWARDS & ESCAPES CTA */}
       <section className="w-full max-w-[1600px] 2xl:max-w-[1720px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         <div className="bg-gradient-to-r from-[#0a2560] via-[#093278] to-[#0284c7] rounded-3xl p-8 sm:p-14 text-white shadow-2xl relative overflow-hidden">
           <div className="max-w-3xl relative z-10 space-y-5">

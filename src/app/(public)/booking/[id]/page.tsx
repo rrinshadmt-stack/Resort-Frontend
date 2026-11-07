@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -21,11 +21,13 @@ import { MOCK_ROOMS } from "@/data/rooms";
 import { mockApi } from "@/lib/mock-api";
 import { formatCurrency, calculateNights } from "@/lib/utils";
 import { CURRENT_MOCK_USER } from "@/data/users";
+import { useAuth } from "@/context/AuthContext";
 
 function BookingFlowContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user } = useAuth();
 
   const resortId = (params?.id as string) || "res-01";
   const roomId = searchParams.get("roomId") || "rm-101";
@@ -48,10 +50,18 @@ function BookingFlowContent() {
   const discount = 50;
   const totalAmount = subtotal + taxesAndFees - discount;
 
-  // Form State with prefilled mock user
-  const [guestName, setGuestName] = useState(CURRENT_MOCK_USER.name);
-  const [guestEmail, setGuestEmail] = useState(CURRENT_MOCK_USER.email);
-  const [guestPhone, setGuestPhone] = useState(CURRENT_MOCK_USER.phone);
+  // Form State with prefilled active user or fallback mock
+  const [guestName, setGuestName] = useState(user?.name || CURRENT_MOCK_USER.name);
+  const [guestEmail, setGuestEmail] = useState(user?.email || CURRENT_MOCK_USER.email);
+  const [guestPhone, setGuestPhone] = useState(user?.phone || CURRENT_MOCK_USER.phone);
+
+  useEffect(() => {
+    if (user) {
+      if (user.name) setGuestName(user.name);
+      if (user.email) setGuestEmail(user.email);
+      if (user.phone) setGuestPhone(user.phone);
+    }
+  }, [user]);
   const [specialRequests, setSpecialRequests] = useState("");
   const [paymentOption, setPaymentOption] = useState<"card" | "arrival">("card");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -204,7 +214,7 @@ function BookingFlowContent() {
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   className="w-full text-xs font-medium p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-blue-500"
-                  placeholder="e.g. Alex Morgan"
+                  placeholder="e.g. John Doe"
                 />
               </div>
 
